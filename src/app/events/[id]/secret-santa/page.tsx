@@ -4,21 +4,21 @@ import {
   participants,
   secretSantaAssignments,
 } from "@/db/schema";
-import { and, eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { notFound, redirect } from "next/navigation";
-import Link from "next/link";
 import AppHeader from "@/components/AppHeader";
+import { generateSecretSanta } from "./actions";
 
-type EventPageProps = {
+type SecretSantaPageProps = {
   params: Promise<{
     id: string;
   }>;
 };
 
-export default async function EventPage({
+export default async function SecretSantaPage({
   params,
-}: EventPageProps) {
+}: SecretSantaPageProps) {
   const { id } = await params;
 
   const event = await db.query.events.findFirst({
@@ -30,6 +30,7 @@ export default async function EventPage({
   }
 
   const cookieStore = await cookies();
+
   const participantId =
     cookieStore.get("participant_id")?.value;
 
@@ -37,13 +38,13 @@ export default async function EventPage({
     redirect(`/events/${id}/join`);
   }
 
-  const participant =
-    await db.query.participants.findFirst({
-      where: and(
-        eq(participants.id, participantId),
-        eq(participants.eventId, id)
-      ),
-    });
+  // Make sure this participant belongs to this event.
+  const participant = await db.query.participants.findFirst({
+    where: and(
+      eq(participants.id, participantId),
+      eq(participants.eventId, id)
+    ),
+  });
 
   if (!participant) {
     redirect(`/events/${id}/join`);
@@ -79,7 +80,7 @@ export default async function EventPage({
       <main className="px-6 py-10">
         <div className="mx-auto w-full max-w-md">
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Event
+            Secret Santa
           </p>
 
           <h1 className="mt-2 text-3xl font-bold">
@@ -92,24 +93,31 @@ export default async function EventPage({
             </p>
           )}
 
-          {/* Secret Santa */}
           <div className="mt-8 rounded-2xl border border-gray-200 p-6 dark:border-gray-800">
             {!assignment ? (
               <>
                 <h2 className="text-xl font-semibold">
-                  Secret Santa
+                  Ready?
                 </h2>
 
-                <p className="mt-2 text-gray-600 dark:text-gray-400">
-                  Find out who you're buying a gift for.
+                <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                  Click below to reveal your Secret Santa.
                 </p>
 
-                <Link
-                  href={`/events/${event.id}/secret-santa`}
-                  className="mt-5 block w-full rounded-xl bg-black px-6 py-4 text-center font-medium text-white dark:bg-white dark:text-black"
+                <form
+                  action={async () => {
+                    "use server";
+                    await generateSecretSanta(id);
+                  }}
+                  className="mt-6"
                 >
-                  Generate Secret Santa
-                </Link>
+                  <button
+                    type="submit"
+                    className="w-full rounded-xl bg-black px-6 py-4 font-medium text-white hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-200"
+                  >
+                    Generate Secret Santa
+                  </button>
+                </form>
               </>
             ) : (
               <>
@@ -117,9 +125,9 @@ export default async function EventPage({
                   Your name
                 </p>
 
-                <h2 className="mt-1 text-xl font-semibold">
+                <p className="mt-1 text-xl font-semibold">
                   {participant.name}
-                </h2>
+                </p>
 
                 <div className="my-6 border-t border-gray-200 dark:border-gray-800" />
 
@@ -127,7 +135,7 @@ export default async function EventPage({
                   Your Secret Santa
                 </p>
 
-                <p className="mt-2 text-3xl font-bold">
+                <p className="mt-3 text-3xl font-bold">
                   {assignedParticipant?.name}
                 </p>
 
@@ -136,17 +144,6 @@ export default async function EventPage({
                     @{assignedParticipant.username}
                   </p>
                 )}
-
-                <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">
-                  Assigned{" "}
-                  {assignment.createdAt.toLocaleString(
-                    "en-US",
-                    {
-                      dateStyle: "long",
-                      timeStyle: "short",
-                    }
-                  )}
-                </p>
               </>
             )}
           </div>

@@ -26,7 +26,10 @@ export default function AdminLoginPage() {
             </p>
           </div>
 
-          <form className="mt-8 space-y-5">
+          <form
+            action={loginAdmin}
+            className="mt-8 space-y-5"
+          >
             <div>
               <label
                 htmlFor="code"

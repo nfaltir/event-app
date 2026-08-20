@@ -1,5 +1,9 @@
 import { db } from "@/db";
-import { events, participants } from "@/db/schema";
+import {
+  events,
+  participants,
+  secretSantaAssignments,
+} from "@/db/schema";
 import { verifyAdminSession, COOKIE_NAME } from "@/lib/session";
 import { eq } from "drizzle-orm";
 import { cookies } from "next/headers";
@@ -44,6 +48,25 @@ export default async function AdminEventPage({
     .select()
     .from(participants)
     .where(eq(participants.eventId, id));
+
+  const assignments = await db
+    .select()
+    .from(secretSantaAssignments)
+    .where(eq(secretSantaAssignments.eventId, id));
+
+  const participantMap = new Map(
+    eventParticipants.map((participant) => [
+      participant.id,
+      participant,
+    ])
+  );
+
+  const assignedParticipantIds = new Set(
+    assignments.map((assignment) => assignment.participantId)
+  );
+
+  const assignedCount = assignments.length;
+  const totalParticipants = eventParticipants.length;
 
   return (
     <div className="min-h-screen bg-white text-gray-900 dark:bg-gray-950 dark:text-white">
@@ -95,6 +118,67 @@ export default async function AdminEventPage({
               </p>
             </div>
 
+            {/* Add Participant */}
+            <div className="rounded-xl border border-gray-200 p-5 dark:border-gray-800">
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                Add Participant
+              </p>
+
+              <form
+                action={async (formData) => {
+                  "use server";
+                  await addParticipant(id, formData);
+                }}
+                className="mt-4 space-y-4"
+              >
+                <div>
+                  <label
+                    htmlFor="name"
+                    className="mb-2 block text-sm font-medium"
+                  >
+                    Name
+                  </label>
+
+                  <input
+                    id="name"
+                    name="name"
+                    type="text"
+                    placeholder="John"
+                    required
+                    className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 outline-none focus:ring-2 dark:border-gray-700 dark:bg-gray-900"
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="username"
+                    className="mb-2 block text-sm font-medium"
+                  >
+                    Username
+                    <span className="ml-1 font-normal text-gray-400">
+                      (optional)
+                    </span>
+                  </label>
+
+                  <input
+                    id="username"
+                    name="username"
+                    type="text"
+                    placeholder="john123"
+                    autoComplete="off"
+                    className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 outline-none focus:ring-2 dark:border-gray-700 dark:bg-gray-900"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full rounded-xl bg-black px-4 py-3 font-medium text-white hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-200"
+                >
+                  Add Participant
+                </button>
+              </form>
+            </div>
+
             {/* Participants */}
             <div className="rounded-xl border border-gray-200 p-5 dark:border-gray-800">
               <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -105,82 +189,112 @@ export default async function AdminEventPage({
                 {eventParticipants.length}
               </p>
 
-              {/* Add Participant */}
-              <form
-                action={addParticipant.bind(null, event.id)}
-                className="mt-4 space-y-3"
-              >
-                <input
-                  name="name"
-                  type="text"
-                  placeholder="Participant name"
-                  required
-                  className="w-full rounded-xl border px-4 py-3 dark:border-gray-700 dark:bg-gray-900"
-                />
+              <div className="mt-4 space-y-3">
+                {eventParticipants.map((participant) => (
+                  <div
+                    key={participant.id}
+                    className="rounded-xl bg-gray-50 p-4 dark:bg-gray-900"
+                  >
+                    <p className="font-medium">
+                      {participant.name}
+                    </p>
 
-                <input
-                  name="username"
-                  type="text"
-                  placeholder="Username (optional)"
-                  className="w-full rounded-xl border px-4 py-3 dark:border-gray-700 dark:bg-gray-900"
-                />
-
-                <button
-                  type="submit"
-                  className="w-full rounded-xl bg-black px-4 py-3 font-medium text-white dark:bg-white dark:text-black"
-                >
-                  Add Participant
-                </button>
-              </form>
-
-              {/* Participant List */}
-              {eventParticipants.length > 0 && (
-                <div className="mt-6 space-y-3">
-                  {eventParticipants.map((participant) => (
-                    <div
-                      key={participant.id}
-                      className="rounded-xl border border-gray-200 p-4 dark:border-gray-700"
-                    >
-                      <p className="font-medium">
-                        {participant.name}
+                    {participant.username && (
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        @{participant.username}
                       </p>
+                    )}
 
-                      {participant.username && (
-                        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                          @{participant.username}
-                        </p>
-                      )}
-
-                      <div className="mt-3 flex items-center justify-between gap-3">
-                        <div>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">
-                            Access Code
-                          </p>
-
-                          <p className="font-mono text-sm font-bold tracking-wider">
-                            {participant.accessCode}
-                          </p>
-                        </div>
-
-                        <CopyCodeButton
-                          code={participant.accessCode}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+                    <p className="mt-2 font-mono text-sm tracking-wider">
+                      {participant.accessCode}
+                    </p>
+                  </div>
+                ))}
+              </div>
             </div>
 
-            {/* Activities */}
+            {/* Secret Santa Status */}
             <div className="rounded-xl border border-gray-200 p-5 dark:border-gray-800">
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                Activities
+                Secret Santa Status
               </p>
 
               <p className="mt-1 text-2xl font-bold">
-                0
+                {assignedCount} / {totalParticipants}
               </p>
+
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                participants assigned
+              </p>
+
+              <div className="mt-5 space-y-3">
+                {eventParticipants.map((participant) => {
+                  const assignment = assignments.find(
+                    (item) =>
+                      item.participantId === participant.id
+                  );
+
+                  const assignedParticipant = assignment
+                    ? participantMap.get(
+                        assignment.assignedParticipantId
+                      )
+                    : null;
+
+                  return (
+                    <div
+                      key={participant.id}
+                      className="rounded-xl bg-gray-50 p-4 dark:bg-gray-900"
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div>
+                          <p className="font-medium">
+                            {participant.name}
+                          </p>
+
+                          {assignment && assignedParticipant ? (
+                            <>
+                              <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                                Secret Santa
+                              </p>
+
+                              <p className="font-medium">
+                                {assignedParticipant.name}
+                              </p>
+
+                              <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                                Assigned{" "}
+                                {assignment.createdAt.toLocaleString(
+                                  "en-US",
+                                  {
+                                    dateStyle: "long",
+                                    timeStyle: "short",
+                                  }
+                                )}
+                              </p>
+                            </>
+                          ) : (
+                            <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                              Not assigned yet
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="shrink-0">
+                          {assignment ? (
+                            <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                              Assigned
+                            </span>
+                          ) : (
+                            <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-400">
+                              Waiting
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </div>
