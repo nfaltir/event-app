@@ -8,19 +8,103 @@ import { verifyAdminSession, COOKIE_NAME } from "@/lib/session";
 import { eq } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { notFound, redirect } from "next/navigation";
+import Link from "next/link";
 import AppHeader from "@/components/AppHeader";
 import CopyCodeButton from "@/components/CopyCodeButton";
 import { addParticipant } from "./actions";
 
-type AdminEventPageProps = {
-  params: Promise<{
-    id: string;
-  }>;
+/* ---------- icons ---------- */
+
+type IconProps = { className?: string };
+
+const svgProps = {
+  viewBox: "0 0 24 24",
+  fill: "none",
+  stroke: "currentColor",
+  strokeWidth: 2,
+  strokeLinecap: "round" as const,
+  strokeLinejoin: "round" as const,
+  "aria-hidden": true,
 };
 
-export default async function AdminEventPage({
-  params,
-}: AdminEventPageProps) {
+function IconArrowLeft({ className = "" }: IconProps) {
+  return (
+    <svg {...svgProps} className={className}>
+      <path d="M19 12H5M12 19l-7-7 7-7" />
+    </svg>
+  );
+}
+
+function IconKey({ className = "" }: IconProps) {
+  return (
+    <svg {...svgProps} className={className}>
+      <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3" />
+    </svg>
+  );
+}
+
+function IconUsers({ className = "" }: IconProps) {
+  return (
+    <svg {...svgProps} className={className}>
+      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
+  );
+}
+
+function IconUserPlus({ className = "" }: IconProps) {
+  return (
+    <svg {...svgProps} className={className}>
+      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M19 8v6M22 11h-6" />
+    </svg>
+  );
+}
+
+function IconGift({ className = "" }: IconProps) {
+  return (
+    <svg {...svgProps} className={className}>
+      <rect x="3" y="8" width="18" height="4" rx="1" />
+      <path d="M12 8v13M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7" />
+      <path d="M7.5 8a2.5 2.5 0 0 1 0-5C11 3 12 8 12 8s1-5 4.5-5a2.5 2.5 0 0 1 0 5" />
+    </svg>
+  );
+}
+
+function IconCheck({ className = "" }: IconProps) {
+  return (
+    <svg {...svgProps} className={className}>
+      <path d="M20 6L9 17l-5-5" />
+    </svg>
+  );
+}
+
+function IconClock({ className = "" }: IconProps) {
+  return (
+    <svg {...svgProps} className={className}>
+      <circle cx="12" cy="12" r="10" />
+      <path d="M12 6v6l4 2" />
+    </svg>
+  );
+}
+
+function IconArrowRight({ className = "" }: IconProps) {
+  return (
+    <svg {...svgProps} className={className}>
+      <path d="M5 12h14M12 5l7 7-7 7" />
+    </svg>
+  );
+}
+
+/* ---------- page ---------- */
+
+type AdminEventPageProps = {
+  params: Promise<{ id: string }>;
+};
+
+export default async function AdminEventPage({ params }: AdminEventPageProps) {
   const { id } = await params;
 
   const cookieStore = await cookies();
@@ -32,7 +116,7 @@ export default async function AdminEventPage({
 
   const session = await verifyAdminSession(token);
 
-  if (!session || session.eventId !== id) {
+  if (!session || session.role !== "admin") {
     redirect("/admin/login");
   }
 
@@ -55,246 +139,284 @@ export default async function AdminEventPage({
     .where(eq(secretSantaAssignments.eventId, id));
 
   const participantMap = new Map(
-    eventParticipants.map((participant) => [
-      participant.id,
-      participant,
-    ])
+    eventParticipants.map((participant) => [participant.id, participant])
   );
 
-  const assignedParticipantIds = new Set(
-    assignments.map((assignment) => assignment.participantId)
+  const assignmentMap = new Map(
+    assignments.map((assignment) => [assignment.participantId, assignment])
   );
 
   const assignedCount = assignments.length;
   const totalParticipants = eventParticipants.length;
 
+  const pct =
+    totalParticipants > 0
+      ? Math.round((assignedCount / totalParticipants) * 100)
+      : 0;
+
+  const complete = totalParticipants > 0 && assignedCount === totalParticipants;
+
+  const fieldClass =
+    "w-full rounded-xl border border-[#C1272D]/20 bg-[#FBF3E7] px-4 py-2.5 text-sm text-[#2A1A14] outline-none transition-all placeholder:text-[#2A1A14]/30 focus:border-[#C1272D] focus:bg-white focus:ring-4 focus:ring-[#C1272D]/15 dark:border-white/15 dark:bg-[#1A1113] dark:text-white dark:placeholder:text-white/30 dark:focus:border-[#E9B44C] dark:focus:ring-[#E9B44C]/15";
+
   return (
-    <div className="min-h-screen bg-white text-gray-900 dark:bg-gray-950 dark:text-white">
+    <div className="min-h-screen bg-[#FBF3E7] text-[#2A1A14] dark:bg-[#1A1113] dark:text-[#EFE6D8]">
       <AppHeader />
 
-      <main className="px-6 py-10">
-        <div className="mx-auto w-full max-w-md">
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            Admin
-          </p>
+      <main className="px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
+        <div className="mx-auto w-full max-w-6xl">
+          {/* Back link */}
+          <Link
+            href="/admin/dashboard"
+            className="inline-flex items-center gap-1.5 text-sm text-[#2A1A14]/60 transition-colors hover:text-[#C1272D] dark:text-[#EFE6D8]/60 dark:hover:text-[#E9B44C]"
+          >
+            <IconArrowLeft className="h-4 w-4" />
+            Dashboard
+          </Link>
 
-          <h1 className="mt-2 text-3xl font-bold">
-            {event.name}
-          </h1>
-
-          {event.description && (
-            <p className="mt-3 text-gray-600 dark:text-gray-400">
-              {event.description}
-            </p>
-          )}
-
-          {/* Admin Code */}
-          <div className="mt-8 rounded-2xl border border-gray-200 bg-gray-50 p-6 dark:border-gray-800 dark:bg-gray-900">
-            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-              Admin Code
-            </p>
-
-            <p className="mt-2 font-mono text-2xl font-bold tracking-[0.25em]">
-              {event.adminCode}
-            </p>
-
-            <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">
-              Save this code somewhere safe. You can use it to manage
-              this event later.
-            </p>
-
-            <CopyCodeButton code={event.adminCode} />
-          </div>
-
-          <div className="mt-6 space-y-4">
-            {/* Event Status */}
-            <div className="rounded-xl border border-gray-200 p-5 dark:border-gray-800">
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Event Status
+          {/* Header */}
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div className="min-w-0">
+              <p className="font-(family-name:--font-script) text-xl text-[#C1272D] dark:text-[#E9B44C]">
+                Organiser
               </p>
+              <h1 className="mt-0.5 font-(family-name:--font-display) text-3xl font-semibold tracking-tight sm:text-4xl">
+                {event.name}
+              </h1>
 
-              <p className="mt-1 font-medium capitalize">
-                {event.status}
-              </p>
+              {event.description && (
+                <p className="mt-2 max-w-2xl text-sm text-[#2A1A14]/70 dark:text-[#EFE6D8]/60">
+                  {event.description}
+                </p>
+              )}
             </div>
 
-            {/* Add Participant */}
-            <div className="rounded-xl border border-gray-200 p-5 dark:border-gray-800">
-              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                Add Participant
-              </p>
+            <span className="inline-flex shrink-0 items-center gap-1.5 self-start rounded-full bg-[#C1272D]/10 px-3 py-1 text-xs font-semibold capitalize text-[#C1272D] dark:bg-[#C1272D]/20 dark:text-[#E9B44C]">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#2F5A43]" />
+              {event.status}
+            </span>
+          </div>
 
-              <form
-                action={async (formData) => {
-                  "use server";
-                  await addParticipant(id, formData);
-                }}
-                className="mt-4 space-y-4"
-              >
-                <div>
-                  <label
-                    htmlFor="name"
-                    className="mb-2 block text-sm font-medium"
-                  >
-                    Name
-                  </label>
+          {/* Two-column layout */}
+          <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
+            {/* Sidebar */}
+            <div className="space-y-6 lg:col-span-1">
+              {/* Admin code */}
+              <section className="rounded-2xl border border-[#C1272D]/12 bg-white p-6 dark:border-white/10 dark:bg-[#241719]">
+                <div className="flex items-center gap-2 text-[#2A1A14]/60 dark:text-[#EFE6D8]/60">
+                  <IconKey className="h-4 w-4" />
+                  <h2 className="text-sm font-semibold">Admin code</h2>
+                </div>
 
-                  <input
-                    id="name"
-                    name="name"
-                    type="text"
-                    placeholder="John"
-                    required
-                    className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 outline-none focus:ring-2 dark:border-gray-700 dark:bg-gray-900"
+                <p className="mt-3 break-all font-mono text-2xl font-bold tracking-[0.2em] text-[#C1272D] dark:text-[#E9B44C]">
+                  {event.adminCode}
+                </p>
+
+                <p className="mt-3 text-sm text-[#2A1A14]/60 dark:text-[#EFE6D8]/50">
+                  Keep this safe. Use it to manage the event later.
+                </p>
+
+                <CopyCodeButton code={event.adminCode} />
+              </section>
+
+              {/* Draw progress */}
+              <section className="rounded-2xl border border-[#C1272D]/12 bg-white p-6 dark:border-white/10 dark:bg-[#241719]">
+                <div className="flex items-center gap-2 text-[#2A1A14]/60 dark:text-[#EFE6D8]/60">
+                  <IconGift className="h-4 w-4" />
+                  <h2 className="text-sm font-semibold">Draw progress</h2>
+                </div>
+
+                <p className="mt-3 font-(family-name:--font-display) text-3xl font-semibold tabular-nums">
+                  {assignedCount}
+                  <span className="text-[#2A1A14]/40 dark:text-[#EFE6D8]/40">
+                    {" / "}
+                    {totalParticipants}
+                  </span>
+                </p>
+
+                <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-[#C1272D]/10 dark:bg-white/10">
+                  <div
+                    className={`h-full rounded-full transition-all ${
+                      complete ? "bg-[#2F5A43]" : "bg-[#C1272D]"
+                    }`}
+                    style={{ width: `${pct}%` }}
                   />
                 </div>
 
-                <div>
-                  <label
-                    htmlFor="username"
-                    className="mb-2 block text-sm font-medium"
-                  >
-                    Username
-                    <span className="ml-1 font-normal text-gray-400">
-                      (optional)
-                    </span>
-                  </label>
+                <p className="mt-3 text-sm text-[#2A1A14]/60 dark:text-[#EFE6D8]/50">
+                  {complete
+                    ? "Everyone has drawn."
+                    : `${totalParticipants - assignedCount} still to draw.`}
+                </p>
+              </section>
 
-                  <input
-                    id="username"
-                    name="username"
-                    type="text"
-                    placeholder="john123"
-                    autoComplete="off"
-                    className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 outline-none focus:ring-2 dark:border-gray-700 dark:bg-gray-900"
-                  />
+              {/* Add participant */}
+              <section className="rounded-2xl border border-[#C1272D]/12 bg-white p-6 dark:border-white/10 dark:bg-[#241719]">
+                <div className="flex items-center gap-2 text-[#2A1A14]/60 dark:text-[#EFE6D8]/60">
+                  <IconUserPlus className="h-4 w-4" />
+                  <h2 className="text-sm font-semibold">Add participant</h2>
                 </div>
 
-                <button
-                  type="submit"
-                  className="w-full rounded-xl bg-black px-4 py-3 font-medium text-white hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-200"
+                <form
+                  action={async (formData) => {
+                    "use server";
+                    await addParticipant(id, formData);
+                  }}
+                  className="mt-4 space-y-4"
                 >
-                  Add Participant
-                </button>
-              </form>
+                  <div>
+                    <label htmlFor="name" className="mb-1.5 block text-sm font-semibold">
+                      Name
+                    </label>
+
+                    <input
+                      id="name"
+                      name="name"
+                      type="text"
+                      placeholder="John"
+                      required
+                      className={fieldClass}
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="username" className="mb-1.5 block text-sm font-semibold">
+                      Username
+                      <span className="ml-1 font-normal text-[#2A1A14]/40 dark:text-[#EFE6D8]/40">
+                        (optional)
+                      </span>
+                    </label>
+
+                    <input
+                      id="username"
+                      name="username"
+                      type="text"
+                      placeholder="john123"
+                      autoComplete="off"
+                      className={fieldClass}
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#C1272D] px-4 py-3 text-sm font-bold text-white shadow-[0_8px_24px_-10px_rgba(193,39,45,0.55)] transition-colors hover:bg-[#8E1D22]"
+                  >
+                    <IconUserPlus className="h-4 w-4" />
+                    Add participant
+                  </button>
+                </form>
+              </section>
             </div>
 
             {/* Participants */}
-            <div className="rounded-xl border border-gray-200 p-5 dark:border-gray-800">
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Participants
-              </p>
+            <div className="lg:col-span-2">
+              <section className="rounded-2xl border border-[#C1272D]/12 bg-white p-6 dark:border-white/10 dark:bg-[#241719]">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-2 text-[#2A1A14]/60 dark:text-[#EFE6D8]/60">
+                    <IconUsers className="h-4 w-4" />
+                    <h2 className="text-sm font-semibold">Participants</h2>
+                  </div>
 
-              <p className="mt-1 text-2xl font-bold">
-                {eventParticipants.length}
-              </p>
+                  <span className="rounded-full bg-[#C1272D]/10 px-2.5 py-1 text-xs font-semibold tabular-nums text-[#C1272D] dark:bg-[#C1272D]/20 dark:text-[#E9B44C]">
+                    {totalParticipants}
+                  </span>
+                </div>
 
-              <div className="mt-4 space-y-3">
-                {eventParticipants.map((participant) => (
-                  <div
-                    key={participant.id}
-                    className="rounded-xl bg-gray-50 p-4 dark:bg-gray-900"
-                  >
-                    <p className="font-medium">
-                      {participant.name}
+                {totalParticipants === 0 ? (
+                  <div className="mt-6 rounded-xl border border-dashed border-[#C1272D]/25 px-6 py-12 text-center dark:border-white/15">
+                    <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#C1272D]/10 text-[#C1272D] dark:bg-[#C1272D]/20 dark:text-[#E9B44C]">
+                      <IconUsers className="h-6 w-6" />
+                    </div>
+
+                    <p className="mt-4 font-(family-name:--font-display) font-semibold">
+                      No participants yet
                     </p>
 
-                    {participant.username && (
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        @{participant.username}
-                      </p>
-                    )}
-
-                    <p className="mt-2 font-mono text-sm tracking-wider">
-                      {participant.accessCode}
+                    <p className="mx-auto mt-1 max-w-xs text-sm text-[#2A1A14]/60 dark:text-[#EFE6D8]/50">
+                      Add at least two people, then send each of them their access code.
                     </p>
                   </div>
-                ))}
-              </div>
-            </div>
+                ) : (
+                  <ul className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+                    {eventParticipants.map((participant) => {
+                      const assignment = assignmentMap.get(participant.id);
 
-            {/* Secret Santa Status */}
-            <div className="rounded-xl border border-gray-200 p-5 dark:border-gray-800">
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Secret Santa Status
-              </p>
+                      const assignedParticipant = assignment
+                        ? participantMap.get(assignment.assignedParticipantId)
+                        : null;
 
-              <p className="mt-1 text-2xl font-bold">
-                {assignedCount} / {totalParticipants}
-              </p>
-
-              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                participants assigned
-              </p>
-
-              <div className="mt-5 space-y-3">
-                {eventParticipants.map((participant) => {
-                  const assignment = assignments.find(
-                    (item) =>
-                      item.participantId === participant.id
-                  );
-
-                  const assignedParticipant = assignment
-                    ? participantMap.get(
-                        assignment.assignedParticipantId
-                      )
-                    : null;
-
-                  return (
-                    <div
-                      key={participant.id}
-                      className="rounded-xl bg-gray-50 p-4 dark:bg-gray-900"
-                    >
-                      <div className="flex items-start justify-between gap-4">
-                        <div>
-                          <p className="font-medium">
-                            {participant.name}
-                          </p>
-
-                          {assignment && assignedParticipant ? (
-                            <>
-                              <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                                Secret Santa
+                      return (
+                        <li
+                          key={participant.id}
+                          className="flex flex-col rounded-xl border border-[#C1272D]/12 p-4 dark:border-white/10"
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <p className="truncate font-(family-name:--font-display) font-semibold">
+                                {participant.name}
                               </p>
 
-                              <p className="font-medium">
-                                {assignedParticipant.name}
-                              </p>
+                              {participant.username && (
+                                <p className="truncate text-sm text-[#2A1A14]/50 dark:text-[#EFE6D8]/50">
+                                  @{participant.username}
+                                </p>
+                              )}
+                            </div>
 
-                              <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                                Assigned{" "}
-                                {assignment.createdAt.toLocaleString(
-                                  "en-US",
-                                  {
-                                    dateStyle: "long",
-                                    timeStyle: "short",
-                                  }
-                                )}
-                              </p>
-                            </>
-                          ) : (
-                            <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                              Not assigned yet
+                            {assignment ? (
+                              <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[#2F5A43]/12 px-2.5 py-1 text-xs font-semibold text-[#2F5A43] dark:bg-[#2F5A43]/25 dark:text-[#7FcaA0]">
+                                <IconCheck className="h-3 w-3" />
+                                Drawn
+                              </span>
+                            ) : (
+                              <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[#C1272D]/10 px-2.5 py-1 text-xs font-semibold text-[#C1272D] dark:bg-[#C1272D]/20 dark:text-[#E9B44C]">
+                                <IconClock className="h-3 w-3" />
+                                Waiting
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Access code */}
+                          <div className="mt-3 rounded-lg bg-[#FBF3E7] px-3 py-2 dark:bg-[#1A1113]">
+                            <p className="text-[11px] uppercase tracking-wider text-[#2A1A14]/45 dark:text-[#EFE6D8]/40">
+                              Access code
                             </p>
-                          )}
-                        </div>
 
-                        <div className="shrink-0">
-                          {assignment ? (
-                            <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-700 dark:bg-green-900/30 dark:text-green-400">
-                              Assigned
-                            </span>
-                          ) : (
-                            <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-400">
-                              Waiting
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+                            <p className="mt-0.5 font-mono text-sm font-semibold tracking-wider text-[#C1272D] dark:text-[#E9B44C]">
+                              {participant.accessCode}
+                            </p>
+                          </div>
+
+                          {/* Assignment */}
+                          <div className="mt-3 border-t border-dashed border-[#C1272D]/15 pt-3 dark:border-white/10">
+                            {assignment && assignedParticipant ? (
+                              <>
+                                <div className="flex items-center gap-2 text-sm">
+                                  <IconArrowRight className="h-4 w-4 shrink-0 text-[#2A1A14]/40 dark:text-[#EFE6D8]/40" />
+                                  <span className="truncate font-semibold">
+                                    {assignedParticipant.name}
+                                  </span>
+                                </div>
+
+                                <p className="mt-1.5 text-xs text-[#2A1A14]/50 dark:text-[#EFE6D8]/45">
+                                  {assignment.createdAt.toLocaleString("en-US", {
+                                    dateStyle: "medium",
+                                    timeStyle: "short",
+                                  })}
+                                </p>
+                              </>
+                            ) : (
+                              <p className="text-sm text-[#2A1A14]/40 dark:text-[#EFE6D8]/40">
+                                Not drawn yet
+                              </p>
+                            )}
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </section>
             </div>
           </div>
         </div>

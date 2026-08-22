@@ -1,14 +1,13 @@
 "use server";
 
 import { db } from "@/db";
-import { participants } from "@/db/schema";
+import { events } from "@/db/schema";
 import { verifyAdminSession, COOKIE_NAME } from "@/lib/session";
 import { generateCode } from "@/lib/codes";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { revalidatePath } from "next/cache";
 
-async function verifyAdmin(eventId: string) {
+export async function createEvent(formData: FormData) {
   const cookieStore = await cookies();
   const token = cookieStore.get(COOKIE_NAME)?.value;
 
@@ -21,29 +20,27 @@ async function verifyAdmin(eventId: string) {
   if (!session || session.role !== "admin") {
     redirect("/admin/login");
   }
-}
-
-export async function addParticipant(
-  eventId: string,
-  formData: FormData
-) {
-  await verifyAdmin(eventId);
 
   const name = formData.get("name")?.toString().trim();
-  const username = formData.get("username")?.toString().trim();
+  const description = formData
+    .get("description")
+    ?.toString()
+    .trim();
 
   if (!name) {
-    throw new Error("Participant name is required.");
+    throw new Error("Event name is required.");
   }
 
-  const accessCode = generateCode();
+  const adminCode = generateCode();
 
-  await db.insert(participants).values({
-    eventId,
-    name,
-    username: username || null,
-    accessCode,
-  });
+  const [event] = await db
+    .insert(events)
+    .values({
+      name,
+      description: description || null,
+      adminCode,
+    })
+    .returning();
 
-  revalidatePath(`/admin/events/${eventId}`);
+  redirect(`/admin/events/${event.id}`);
 }

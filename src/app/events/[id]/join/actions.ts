@@ -36,5 +36,5 @@ export async function joinEvent(
     path: "/",
   });
 
-  redirect(`/events/${eventId}`);
+  redirect(`/events/${eventId}/secret-santa`);
 }

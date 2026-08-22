@@ -10,9 +10,8 @@ const key = new TextEncoder().encode(secret);
 
 const COOKIE_NAME = "admin_session";
 
-export async function createAdminSession(eventId: string) {
+export async function createAdminSession() {
   const token = await new SignJWT({
-    eventId,
     role: "admin",
   })
     .setProtectedHeader({ alg: "HS256" })
@@ -27,15 +26,12 @@ export async function verifyAdminSession(token: string) {
   try {
     const { payload } = await jwtVerify(token, key);
 
-    if (
-      typeof payload.eventId !== "string" ||
-      payload.role !== "admin"
-    ) {
+    if (payload.role !== "admin") {
       return null;
     }
 
     return {
-      eventId: payload.eventId,
+      role: "admin" as const,
     };
   } catch {
     return null;

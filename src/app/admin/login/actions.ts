@@ -1,9 +1,6 @@
 "use server";
 
-import { db } from "@/db";
-import { events } from "@/db/schema";
 import { createAdminSession, COOKIE_NAME } from "@/lib/session";
-import { eq } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -14,15 +11,18 @@ export async function loginAdmin(formData: FormData) {
     throw new Error("Admin code is required.");
   }
 
-  const event = await db.query.events.findFirst({
-    where: eq(events.adminCode, code),
-  });
+  // TODO: Replace this with the actual global admin passcode.
+  const adminPasscode = process.env.ADMIN_PASSCODE;
 
-  if (!event) {
-    throw new Error("Invalid admin code.");
+  if (!adminPasscode) {
+    throw new Error("ADMIN_PASSCODE is not configured.");
   }
 
-  const token = await createAdminSession(event.id);
+  if (code !== adminPasscode.toUpperCase()) {
+    throw new Error("Invalid admin passcode.");
+  }
+
+  const token = await createAdminSession();
 
   const cookieStore = await cookies();
 
@@ -34,5 +34,5 @@ export async function loginAdmin(formData: FormData) {
     maxAge: 60 * 60 * 24 * 7,
   });
 
-  redirect(`/admin/events/${event.id}`);
+  redirect("/admin/dashboard");
 }
