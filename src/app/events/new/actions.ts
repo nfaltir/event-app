@@ -31,7 +31,7 @@ export async function createEvent(formData: FormData) {
       id: events.id,
     });
 
-  const token = await createAdminSession(event.id);
+  const token = await createAdminSession();
 
   const cookieStore = await cookies();
 
