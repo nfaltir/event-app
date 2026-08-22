@@ -1,7 +1,8 @@
 "use server";
 
 import { db } from "@/db";
-import { participants } from "@/db/schema";
+import { eq, and, count } from "drizzle-orm";
+import { events, participants, secretSantaAssignments } from "@/db/schema";
 import { verifyAdminSession, COOKIE_NAME } from "@/lib/session";
 import { generateCode } from "@/lib/codes";
 import { cookies } from "next/headers";
@@ -46,4 +47,121 @@ export async function addParticipant(
   });
 
   revalidatePath(`/admin/events/${eventId}`);
+}
+
+export async function resetDraw(eventId: string) {
+  await verifyAdmin(eventId);
+
+  await db
+    .delete(secretSantaAssignments)
+    .where(eq(secretSantaAssignments.eventId, eventId));
+
+  revalidatePath(`/admin/events/${eventId}`);
+}
+
+
+export async function deleteParticipant(
+  eventId: string,
+  participantId: string
+) {
+  await verifyAdmin(eventId);
+
+  // Guard: refuse to delete once any draw exists for this event.
+  // Removing a participant mid-draw would corrupt everyone's assignments.
+  const [{ value: assignmentCount }] = await db
+    .select({ value: count() })
+    .from(secretSantaAssignments)
+    .where(eq(secretSantaAssignments.eventId, eventId));
+
+  if (assignmentCount > 0) {
+    throw new Error(
+      "Reset the draw before removing participants."
+    );
+  }
+
+  await db
+    .delete(participants)
+    .where(
+      and(
+        eq(participants.id, participantId),
+        eq(participants.eventId, eventId)
+      )
+    );
+
+  revalidatePath(`/admin/events/${eventId}`);
+}
+
+export async function editParticipant(
+  eventId: string,
+  participantId: string,
+  formData: FormData
+) {
+  await verifyAdmin(eventId);
+
+  const name = formData.get("name")?.toString().trim();
+  const username = formData.get("username")?.toString().trim();
+
+  if (!name) {
+    throw new Error("Name is required.");
+  }
+
+  await db
+    .update(participants)
+    .set({
+      name,
+      username: username || null,
+    })
+    .where(
+      and(
+        eq(participants.id, participantId),
+        eq(participants.eventId, eventId)
+      )
+    );
+
+  revalidatePath(`/admin/events/${eventId}`);
+}
+
+export async function editEvent(eventId: string, formData: FormData) {
+  await verifyAdmin(eventId);
+
+  const name = formData.get("name")?.toString().trim();
+  const description = formData.get("description")?.toString().trim();
+
+  if (!name) {
+    throw new Error("Event name is required.");
+  }
+
+  await db
+    .update(events)
+    .set({
+      name,
+      description: description || null,
+    })
+    .where(eq(events.id, eventId));
+
+  revalidatePath(`/admin/events/${eventId}`);
+  revalidatePath("/admin/dashboard");
+  revalidatePath("/");
+}
+
+export async function deleteEvent(eventId: string, confirmName: string) {
+  await verifyAdmin(eventId);
+
+  const event = await db.query.events.findFirst({
+    where: eq(events.id, eventId),
+  });
+
+  if (!event) {
+    throw new Error("Event not found.");
+  }
+
+  if (confirmName.trim() !== event.name) {
+    throw new Error("The name you typed doesn't match this event.");
+  }
+
+  await db.delete(events).where(eq(events.id, eventId));
+
+  revalidatePath("/admin/dashboard");
+  revalidatePath("/");
+  redirect("/admin/dashboard");
 }

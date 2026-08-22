@@ -12,6 +12,10 @@ import Link from "next/link";
 import AppHeader from "@/components/AppHeader";
 import CopyCodeButton from "@/components/CopyCodeButton";
 import { addParticipant } from "./actions";
+import ResetDrawButton from "./ResetDrawButton";
+import DeleteParticipantButton from "./DeleteParticipantButton";
+import EditableParticipantName from "./EditableParticipantName";
+import EditEventForm from "./EditEventForm";
 
 /* ---------- icons ---------- */
 
@@ -189,6 +193,11 @@ export default async function AdminEventPage({ params }: AdminEventPageProps) {
                   {event.description}
                 </p>
               )}
+                            <EditEventForm
+                eventId={id}
+                name={event.name}
+                description={event.description}
+              />
             </div>
 
             <span className="inline-flex shrink-0 items-center gap-1.5 self-start rounded-full bg-[#C1272D]/10 px-3 py-1 text-xs font-semibold capitalize text-[#C1272D] dark:bg-[#C1272D]/20 dark:text-[#E9B44C]">
@@ -248,6 +257,8 @@ export default async function AdminEventPage({ params }: AdminEventPageProps) {
                     ? "Everyone has drawn."
                     : `${totalParticipants - assignedCount} still to draw.`}
                 </p>
+
+                <ResetDrawButton eventId={id} assignedCount={assignedCount} />
               </section>
 
               {/* Add participant */}
@@ -351,29 +362,33 @@ export default async function AdminEventPage({ params }: AdminEventPageProps) {
                           className="flex flex-col rounded-xl border border-[#C1272D]/12 p-4 dark:border-white/10"
                         >
                           <div className="flex items-start justify-between gap-3">
-                            <div className="min-w-0">
-                              <p className="truncate font-(family-name:--font-display) font-semibold">
-                                {participant.name}
-                              </p>
+                            <EditableParticipantName
+                              eventId={id}
+                              participantId={participant.id}
+                              name={participant.name}
+                              username={participant.username}
+                            />
 
-                              {participant.username && (
-                                <p className="truncate text-sm text-[#2A1A14]/50 dark:text-[#EFE6D8]/50">
-                                  @{participant.username}
-                                </p>
+                            <div className="flex shrink-0 items-center gap-1">
+                              {assignment ? (
+                                <span className="inline-flex items-center gap-1 rounded-full bg-[#2F5A43]/12 px-2.5 py-1 text-xs font-semibold text-[#2F5A43] dark:bg-[#2F5A43]/25 dark:text-[#7FcaA0]">
+                                  <IconCheck className="h-3 w-3" />
+                                  Drawn
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1 rounded-full bg-[#C1272D]/10 px-2.5 py-1 text-xs font-semibold text-[#C1272D] dark:bg-[#C1272D]/20 dark:text-[#E9B44C]">
+                                  <IconClock className="h-3 w-3" />
+                                  Waiting
+                                </span>
                               )}
-                            </div>
 
-                            {assignment ? (
-                              <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[#2F5A43]/12 px-2.5 py-1 text-xs font-semibold text-[#2F5A43] dark:bg-[#2F5A43]/25 dark:text-[#7FcaA0]">
-                                <IconCheck className="h-3 w-3" />
-                                Drawn
-                              </span>
-                            ) : (
-                              <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[#C1272D]/10 px-2.5 py-1 text-xs font-semibold text-[#C1272D] dark:bg-[#C1272D]/20 dark:text-[#E9B44C]">
-                                <IconClock className="h-3 w-3" />
-                                Waiting
-                              </span>
-                            )}
+                              <DeleteParticipantButton
+                                eventId={id}
+                                participantId={participant.id}
+                                participantName={participant.name}
+                                drawsExist={assignedCount > 0}
+                              />
+                            </div>
                           </div>
 
                           {/* Access code */}
