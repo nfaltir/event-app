@@ -16,6 +16,7 @@ import ResetDrawButton from "./ResetDrawButton";
 import DeleteParticipantButton from "./DeleteParticipantButton";
 import EditableParticipantName from "./EditableParticipantName";
 import EditEventForm from "./EditEventForm";
+import DeleteEvent from "./DeleteEvent";
 
 /* ---------- icons ---------- */
 
@@ -435,7 +436,18 @@ export default async function AdminEventPage({ params }: AdminEventPageProps) {
             </div>
           </div>
         </div>
+             <div className="mx-auto w-full max-w-6xl">
+            <DeleteEvent
+              eventId={id}
+              eventName={event.name}
+              participantCount={totalParticipants}
+            />
+          </div>
       </main>
     </div>
   );
 }
+
+
+
+     
