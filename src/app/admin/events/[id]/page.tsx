@@ -3,6 +3,7 @@ import {
   events,
   participants,
   secretSantaAssignments,
+  wishes,
 } from "@/db/schema";
 import { verifyAdminSession, COOKIE_NAME } from "@/lib/session";
 import { eq } from "drizzle-orm";
@@ -143,6 +144,18 @@ export default async function AdminEventPage({ params }: AdminEventPageProps) {
     .select()
     .from(secretSantaAssignments)
     .where(eq(secretSantaAssignments.eventId, id));
+
+  const eventWishes = await db
+    .select()
+    .from(wishes)
+    .where(eq(wishes.eventId, id));
+
+  const wishesByParticipant = new Map<string, typeof eventWishes>();
+  for (const w of eventWishes) {
+    const list = wishesByParticipant.get(w.participantId) ?? [];
+    list.push(w);
+    wishesByParticipant.set(w.participantId, list);
+  }
 
   const participantMap = new Map(
     eventParticipants.map((participant) => [participant.id, participant])
@@ -369,6 +382,9 @@ export default async function AdminEventPage({ params }: AdminEventPageProps) {
                         ? participantMap.get(assignment.assignedParticipantId)
                         : null;
 
+                      const theirWishes =
+                        wishesByParticipant.get(participant.id) ?? [];
+
                       return (
                         <li
                           key={participant.id}
@@ -436,6 +452,30 @@ export default async function AdminEventPage({ params }: AdminEventPageProps) {
                             ) : (
                               <p className="text-sm text-[#2A1A14]/40 dark:text-[#EFE6D8]/40">
                                 Not drawn yet
+                              </p>
+                            )}
+                          </div>
+
+                          {/* Wishes */}
+                          <div className="mt-3 border-t border-dashed border-[#C1272D]/15 pt-3 dark:border-white/10">
+                            <p className="text-[11px] font-semibold uppercase tracking-wider text-[#2A1A14]/45 dark:text-[#EFE6D8]/40">
+                              Wishlist
+                            </p>
+                            {theirWishes.length > 0 ? (
+                              <ul className="mt-1.5 space-y-1">
+                                {theirWishes.map((w) => (
+                                  <li
+                                    key={w.id}
+                                    className="flex items-start gap-1.5 text-sm text-[#2A1A14]/80 dark:text-[#EFE6D8]/70"
+                                  >
+                                    <span className="mt-0.5 text-[#E9B44C]">★</span>
+                                    <span className="wrap-break-words">{w.text}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            ) : (
+                              <p className="mt-1 text-sm italic text-[#2A1A14]/40 dark:text-[#EFE6D8]/35">
+                                No wishes yet.
                               </p>
                             )}
                           </div>

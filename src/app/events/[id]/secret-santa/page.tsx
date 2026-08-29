@@ -190,6 +190,16 @@ export default async function SecretSantaPage({
             ) : null}
           </div>
 
+          {/* Wishlist entry */}
+          <div className="mt-6 text-center">
+            <a
+              href={`/events/${id}/wishlist`}
+              className="inline-flex items-center gap-2 rounded-full border border-[#C1272D]/25 px-5 py-2.5 text-sm font-bold text-[#C1272D] transition-colors hover:bg-[#C1272D]/5 dark:border-[#E9B44C]/30 dark:text-[#E9B44C] dark:hover:bg-white/5"
+            >
+              🎁 My wishlist
+            </a>
+          </div>
+
           {!assignment ? (
             /* ---------------- Pre-draw: the envelope ---------------- */
             <DrawExperience
