@@ -309,7 +309,7 @@ export default async function HomePage() {
               n={3}
               icon={<IconStar className="h-5 w-5" />}
               title="Go shopping"
-              body="Your tag is saved. Come back any time to see it — nobody else can."
+              body="Your tag is saved. Come back any time to see it nobody else can."
             />
           </div>
         </section>
