@@ -232,7 +232,7 @@ export default function DrawExperience({
       <p className="mx-auto mt-2 max-w-xs text-center text-sm text-[#2A1A14]/70 dark:text-[#EFE6D8]/60">
         {opening
           ? "Pulling a name from everyone still in the hat…"
-          : "One tap opens your envelope. You only get to do this once — so take a breath first."}
+          : "One tap opens your envelope. You only get to do this once so take a breath first."}
       </p>
 
       {error ? (

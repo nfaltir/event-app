@@ -159,7 +159,7 @@ export default async function JoinEventPage({ params }: JoinEventPageProps) {
           {/* Reassurance */}
           <p className="mt-6 flex items-center justify-center gap-1.5 text-center text-xs text-[#2A1A14]/60 dark:text-[#EFE6D8]/50">
             <IconLock className="h-3.5 w-3.5" />
-            Your draw stays private — nobody else can see it.
+            Your draw stays private & nobody else can see it.
           </p>
         </div>
       </main>

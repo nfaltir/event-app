@@ -23,7 +23,7 @@ function IconGift({ className }: { className?: string }) {
       <rect x="3" y="8" width="18" height="4" rx="1" />
       <path d="M12 8v13" />
       <path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7" />
-      <path d="M7.5 8a2.5 2.5 0 0 1 0-5C11 3 12 8 12 8s1-5 4.5-5a2.5 2.5 0 0 1 0 5" />
+      <path d="M7.5 8a2.5 2.5 0 1 1 0-5C11 3 12 8 12 8s1-5 4.5-5a2.5 2.5 0 0 1 0 5" />
     </svg>
   );
 }
@@ -130,46 +130,188 @@ function IconArrowRight({ className }: { className?: string }) {
 
 const SNOW_CSS = `
 @keyframes home-snowfall {
-  0%   { transform: translateY(-12%) translateX(0) rotate(0deg); opacity: 0; }
-  10%  { opacity: 1; }
-  90%  { opacity: 1; }
-  100% { transform: translateY(108vh) translateX(var(--drift)) rotate(var(--spin)); opacity: 0; }
+  0% {
+    transform: translateY(-12%) translateX(0) rotate(0deg);
+    opacity: 0;
+  }
+
+  10% {
+    opacity: 1;
+  }
+
+  90% {
+    opacity: 1;
+  }
+
+  100% {
+    transform:
+      translateY(108vh)
+      translateX(var(--drift))
+      rotate(var(--spin));
+    opacity: 0;
+  }
 }
+
 .home-snow {
   position: absolute;
   top: -24px;
   color: #E9B44C;
-  filter: drop-shadow(0 0 5px rgba(233,180,76,0.6));
+  filter: drop-shadow(0 0 5px rgba(233, 180, 76, 0.6));
   animation-name: home-snowfall;
   animation-timing-function: linear;
   animation-iteration-count: infinite;
   will-change: transform;
 }
+
 .dark .home-snow {
   color: #ffffff;
-  filter: drop-shadow(0 0 4px rgba(255,255,255,0.5));
+  filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.5));
 }
+
 @media (prefers-reduced-motion: reduce) {
-  .home-snow { animation: none; opacity: 0.5; }
+  .home-snow {
+    animation: none;
+    opacity: 0.5;
+  }
 }
 `;
 
 const SNOW = [
-  { left: "4%", size: 16, dur: "11s", delay: "0s", drift: "20px", spin: "180deg", op: 0.85 },
-  { left: "12%", size: 11, dur: "14s", delay: "2s", drift: "-15px", spin: "-160deg", op: 0.6 },
-  { left: "20%", size: 20, dur: "9s", delay: "1s", drift: "30px", spin: "200deg", op: 0.9 },
-  { left: "28%", size: 9, dur: "16s", delay: "4s", drift: "-10px", spin: "-120deg", op: 0.5 },
-  { left: "36%", size: 14, dur: "12s", delay: "0.5s", drift: "25px", spin: "160deg", op: 0.7 },
-  { left: "44%", size: 18, dur: "10s", delay: "3s", drift: "-25px", spin: "-200deg", op: 0.85 },
-  { left: "52%", size: 11, dur: "15s", delay: "1.5s", drift: "15px", spin: "140deg", op: 0.6 },
-  { left: "60%", size: 15, dur: "13s", delay: "5s", drift: "-20px", spin: "-180deg", op: 0.75 },
-  { left: "68%", size: 9, dur: "17s", delay: "2.5s", drift: "10px", spin: "120deg", op: 0.5 },
-  { left: "76%", size: 20, dur: "9.5s", delay: "0s", drift: "-30px", spin: "-220deg", op: 0.9 },
-  { left: "84%", size: 13, dur: "12.5s", delay: "3.5s", drift: "20px", spin: "180deg", op: 0.7 },
-  { left: "92%", size: 11, dur: "14.5s", delay: "1s", drift: "-15px", spin: "-150deg", op: 0.6 },
-  { left: "8%", size: 13, dur: "13.5s", delay: "6s", drift: "18px", spin: "160deg", op: 0.65 },
-  { left: "48%", size: 15, dur: "11.5s", delay: "4.5s", drift: "-22px", spin: "-190deg", op: 0.75 },
-  { left: "88%", size: 9, dur: "16.5s", delay: "2s", drift: "12px", spin: "130deg", op: 0.5 },
+  {
+    left: "4%",
+    size: 16,
+    dur: "11s",
+    delay: "0s",
+    drift: "20px",
+    spin: "180deg",
+    op: 0.85,
+  },
+  {
+    left: "12%",
+    size: 11,
+    dur: "14s",
+    delay: "2s",
+    drift: "-15px",
+    spin: "-160deg",
+    op: 0.6,
+  },
+  {
+    left: "20%",
+    size: 20,
+    dur: "9s",
+    delay: "1s",
+    drift: "30px",
+    spin: "200deg",
+    op: 0.9,
+  },
+  {
+    left: "28%",
+    size: 9,
+    dur: "16s",
+    delay: "4s",
+    drift: "-10px",
+    spin: "-120deg",
+    op: 0.5,
+  },
+  {
+    left: "36%",
+    size: 14,
+    dur: "12s",
+    delay: "0.5s",
+    drift: "25px",
+    spin: "160deg",
+    op: 0.7,
+  },
+  {
+    left: "44%",
+    size: 18,
+    dur: "10s",
+    delay: "3s",
+    drift: "-25px",
+    spin: "-200deg",
+    op: 0.85,
+  },
+  {
+    left: "52%",
+    size: 11,
+    dur: "15s",
+    delay: "1.5s",
+    drift: "15px",
+    spin: "140deg",
+    op: 0.6,
+  },
+  {
+    left: "60%",
+    size: 15,
+    dur: "13s",
+    delay: "5s",
+    drift: "-20px",
+    spin: "-180deg",
+    op: 0.75,
+  },
+  {
+    left: "68%",
+    size: 9,
+    dur: "17s",
+    delay: "2.5s",
+    drift: "10px",
+    spin: "120deg",
+    op: 0.5,
+  },
+  {
+    left: "76%",
+    size: 20,
+    dur: "9.5s",
+    delay: "0s",
+    drift: "-30px",
+    spin: "-220deg",
+    op: 0.9,
+  },
+  {
+    left: "84%",
+    size: 13,
+    dur: "12.5s",
+    delay: "3.5s",
+    drift: "20px",
+    spin: "180deg",
+    op: 0.7,
+  },
+  {
+    left: "92%",
+    size: 11,
+    dur: "14.5s",
+    delay: "1s",
+    drift: "-15px",
+    spin: "-150deg",
+    op: 0.6,
+  },
+  {
+    left: "8%",
+    size: 13,
+    dur: "13.5s",
+    delay: "6s",
+    drift: "18px",
+    spin: "160deg",
+    op: 0.65,
+  },
+  {
+    left: "48%",
+    size: 15,
+    dur: "11.5s",
+    delay: "4.5s",
+    drift: "-22px",
+    spin: "-190deg",
+    op: 0.75,
+  },
+  {
+    left: "88%",
+    size: 9,
+    dur: "16.5s",
+    delay: "2s",
+    drift: "12px",
+    spin: "130deg",
+    op: 0.5,
+  },
 ];
 
 function Snowfall() {
@@ -179,6 +321,7 @@ function Snowfall() {
       aria-hidden="true"
     >
       <style dangerouslySetInnerHTML={{ __html: SNOW_CSS }} />
+
       {SNOW.map((flake, i) => (
         <span
           key={i}
@@ -223,12 +366,15 @@ function Step({
       <span className="absolute right-4 top-3 font-(family-name:--font-display) text-4xl font-semibold text-[#C1272D]/10 dark:text-white/10">
         {n}
       </span>
+
       <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#C1272D]/10 text-[#C1272D] dark:bg-[#C1272D]/20 dark:text-[#E9B44C]">
         {icon}
       </div>
+
       <h3 className="mt-4 font-(family-name:--font-display) text-lg font-semibold">
         {title}
       </h3>
+
       <p className="mt-1.5 text-sm text-[#2A1A14]/70 dark:text-[#EFE6D8]/60">
         {body}
       </p>
@@ -270,8 +416,8 @@ export default async function HomePage() {
             </h1>
 
             <p className="mx-auto mt-5 max-w-xl text-base text-[#2A1A14]/70 dark:text-[#EFE6D8]/70 sm:text-lg">
-              No spreadsheets, no hats full of paper. Everyone pulls their own
-              name — and nobody sees anyone else&apos;s.
+              No spreadsheets, no hats full of paper. Everyone pulls their
+              own name and nobody sees anyone else&apos;s.
             </p>
 
             <div className="mt-9 flex items-center justify-center">
@@ -299,12 +445,14 @@ export default async function HomePage() {
               title="Enter your code"
               body="Your organiser sends you a private code. Pick your event and type it in."
             />
+
             <Step
               n={2}
               icon={<IconGift className="h-5 w-5" />}
               title="Pull a name"
               body="Tap once. You get one person from everyone still in the hat."
             />
+
             <Step
               n={3}
               icon={<IconStar className="h-5 w-5" />}
@@ -317,17 +465,19 @@ export default async function HomePage() {
         {/* Events */}
         <section
           id="events"
-          className="mx-auto w-full max-w-5xl scroll-mt-8 px-4 pb-24 sm:px-6"
+          className="mx-auto w-full max-w-5xl scroll-mt-8 px-4 pb-16 sm:px-6"
         >
           <div className="flex items-end justify-between gap-4">
             <div className="flex items-center gap-3">
               <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#C1272D]/10 text-[#C1272D] dark:bg-[#C1272D]/20 dark:text-[#E9B44C]">
                 <IconTree className="h-5 w-5" />
               </div>
+
               <div>
                 <h2 className="font-(family-name:--font-display) text-2xl font-semibold tracking-tight">
                   Your events
                 </h2>
+
                 <p className="mt-0.5 text-sm text-[#2A1A14]/70 dark:text-[#EFE6D8]/60">
                   Pick the one you were invited to.
                 </p>
@@ -347,9 +497,11 @@ export default async function HomePage() {
                 <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#C1272D]/10 text-[#C1272D] dark:bg-[#C1272D]/20 dark:text-[#E9B44C]">
                   <IconTree className="h-6 w-6" />
                 </div>
+
                 <p className="mt-4 font-(family-name:--font-display) text-lg font-semibold">
                   No events yet
                 </p>
+
                 <p className="mx-auto mt-1 max-w-xs text-sm text-[#2A1A14]/60 dark:text-[#EFE6D8]/50">
                   Once your organiser sets one up, it&apos;ll show here.
                 </p>
@@ -386,7 +538,59 @@ export default async function HomePage() {
             )}
           </div>
         </section>
+
+        {/* Christmas Games */}
+        <section className="mx-auto w-full max-w-5xl px-4 pb-24 sm:px-6">
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#C1272D]/10 text-[#C1272D] dark:bg-[#C1272D]/20 dark:text-[#E9B44C]">
+              <span className="text-lg" aria-hidden="true">
+                🎮
+              </span>
+            </div>
+
+            <div>
+              <h2 className="font-(family-name:--font-display) text-2xl font-semibold tracking-tight">
+                Christmas games
+              </h2>
+
+              <p className="mt-0.5 text-sm text-[#2A1A14]/70 dark:text-[#EFE6D8]/60">
+                Keep the celebration going after the draw.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-6">
+            <Link
+              href="/games"
+              className="group flex items-center justify-between gap-5 rounded-2xl border border-[#C1272D]/12 bg-white p-6 shadow-sm transition-all hover:-translate-y-0.5 hover:border-[#C1272D]/30 hover:shadow-[0_16px_40px_-16px_rgba(193,39,45,0.3)] dark:border-white/10 dark:bg-[#241719] dark:hover:border-[#E9B44C]/30"
+            >
+              <div className="flex items-center gap-4">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#C1272D]/10 text-[#C1272D] dark:bg-[#C1272D]/20 dark:text-[#E9B44C]">
+                  <span className="text-lg" aria-hidden="true">
+                    🎄
+                  </span>
+                </div>
+
+                <div>
+                  <h3 className="font-(family-name:--font-display) text-lg font-semibold">
+                    Family games
+                  </h3>
+
+                  <p className="mt-1 text-sm text-[#2A1A14]/70 dark:text-[#EFE6D8]/60">
+                    Trivia, challenges, and other festive games for everyone.
+                  </p>
+                </div>
+              </div>
+
+              <span className="inline-flex shrink-0 items-center gap-1.5 text-sm font-bold text-[#C1272D] dark:text-[#E9B44C]">
+                Play
+                <IconArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+              </span>
+            </Link>
+          </div>
+        </section>
       </main>
     </div>
   );
 }
+
