@@ -3,6 +3,7 @@ import {
   events,
   participants,
   secretSantaAssignments,
+  wishes,
 } from "@/db/schema";
 import { verifyAdminSession, COOKIE_NAME } from "@/lib/session";
 import { eq } from "drizzle-orm";
@@ -17,6 +18,7 @@ import DeleteParticipantButton from "./DeleteParticipantButton";
 import EditableParticipantName from "./EditableParticipantName";
 import EditEventForm from "./EditEventForm";
 import DeleteEvent from "./DeleteEvent";
+import { formatMoney } from "@/lib/money";
 
 /* ---------- icons ---------- */
 
@@ -143,6 +145,18 @@ export default async function AdminEventPage({ params }: AdminEventPageProps) {
     .from(secretSantaAssignments)
     .where(eq(secretSantaAssignments.eventId, id));
 
+  const eventWishes = await db
+    .select()
+    .from(wishes)
+    .where(eq(wishes.eventId, id));
+
+  const wishesByParticipant = new Map<string, typeof eventWishes>();
+  for (const w of eventWishes) {
+    const list = wishesByParticipant.get(w.participantId) ?? [];
+    list.push(w);
+    wishesByParticipant.set(w.participantId, list);
+  }
+
   const participantMap = new Map(
     eventParticipants.map((participant) => [participant.id, participant])
   );
@@ -194,17 +208,28 @@ export default async function AdminEventPage({ params }: AdminEventPageProps) {
                   {event.description}
                 </p>
               )}
-                            <EditEventForm
+
+              <EditEventForm
                 eventId={id}
                 name={event.name}
                 description={event.description}
+                budget={event.budget}
+                currency={event.currency}
               />
             </div>
 
-            <span className="inline-flex shrink-0 items-center gap-1.5 self-start rounded-full bg-[#C1272D]/10 px-3 py-1 text-xs font-semibold capitalize text-[#C1272D] dark:bg-[#C1272D]/20 dark:text-[#E9B44C]">
-              <span className="h-1.5 w-1.5 rounded-full bg-[#2F5A43]" />
-              {event.status}
-            </span>
+            <div className="flex shrink-0 items-center gap-2 self-start">
+              {event.budget != null && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-[#2F5A43]/12 px-3 py-1 text-xs font-semibold text-[#2F5A43] dark:bg-[#2F5A43]/25 dark:text-[#7FcaA0]">
+                  Budget {formatMoney(event.budget, event.currency)}
+                </span>
+              )}
+
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#C1272D]/10 px-3 py-1 text-xs font-semibold capitalize text-[#C1272D] dark:bg-[#C1272D]/20 dark:text-[#E9B44C]">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#2F5A43]" />
+                {event.status}
+              </span>
+            </div>
           </div>
 
           {/* Two-column layout */}
@@ -357,6 +382,9 @@ export default async function AdminEventPage({ params }: AdminEventPageProps) {
                         ? participantMap.get(assignment.assignedParticipantId)
                         : null;
 
+                      const theirWishes =
+                        wishesByParticipant.get(participant.id) ?? [];
+
                       return (
                         <li
                           key={participant.id}
@@ -427,6 +455,30 @@ export default async function AdminEventPage({ params }: AdminEventPageProps) {
                               </p>
                             )}
                           </div>
+
+                          {/* Wishes */}
+                          <div className="mt-3 border-t border-dashed border-[#C1272D]/15 pt-3 dark:border-white/10">
+                            <p className="text-[11px] font-semibold uppercase tracking-wider text-[#2A1A14]/45 dark:text-[#EFE6D8]/40">
+                              Wishlist
+                            </p>
+                            {theirWishes.length > 0 ? (
+                              <ul className="mt-1.5 space-y-1">
+                                {theirWishes.map((w) => (
+                                  <li
+                                    key={w.id}
+                                    className="flex items-start gap-1.5 text-sm text-[#2A1A14]/80 dark:text-[#EFE6D8]/70"
+                                  >
+                                    <span className="mt-0.5 text-[#E9B44C]">★</span>
+                                    <span className="wrap-break-words">{w.text}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            ) : (
+                              <p className="mt-1 text-sm italic text-[#2A1A14]/40 dark:text-[#EFE6D8]/35">
+                                No wishes yet.
+                              </p>
+                            )}
+                          </div>
                         </li>
                       );
                     })}
@@ -435,19 +487,15 @@ export default async function AdminEventPage({ params }: AdminEventPageProps) {
               </section>
             </div>
           </div>
+
+          {/* Danger zone */}
+          <DeleteEvent
+            eventId={id}
+            eventName={event.name}
+            participantCount={totalParticipants}
+          />
         </div>
-             <div className="mx-auto w-full max-w-6xl">
-            <DeleteEvent
-              eventId={id}
-              eventName={event.name}
-              participantCount={totalParticipants}
-            />
-          </div>
       </main>
     </div>
   );
 }
-
-
-
-     
