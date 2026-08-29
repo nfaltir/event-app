@@ -25,10 +25,14 @@ export default function EditEventForm({
   eventId,
   name,
   description,
+  budget,
+  currency,
 }: {
   eventId: string;
   name: string;
   description: string | null;
+  budget: number | null;
+  currency: string;
 }) {
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -93,7 +97,53 @@ export default function EditEventForm({
           className="w-full rounded-xl border border-[#C1272D]/20 bg-white px-3 py-2 text-sm text-[#2A1A14] outline-none focus:border-[#C1272D] focus:ring-2 focus:ring-[#C1272D]/15 dark:border-white/15 dark:bg-[#1A1113] dark:text-white dark:focus:border-[#E9B44C] dark:focus:ring-[#E9B44C]/15"
         />
       </div>
-
+            <div>
+        <label
+          htmlFor="edit-desc"
+          className="mb-1.5 block text-sm font-semibold"
+        >
+          Description
+        </label>
+        <textarea
+          id="edit-desc"
+          name="description"
+          defaultValue={description ?? ""}
+          rows={3}
+          className="w-full rounded-xl border border-[#C1272D]/20 bg-white px-3 py-2 text-sm text-[#2A1A14] outline-none focus:border-[#C1272D] focus:ring-2 focus:ring-[#C1272D]/15 dark:border-white/15 dark:bg-[#1A1113] dark:text-white dark:focus:border-[#E9B44C] dark:focus:ring-[#E9B44C]/15"
+        />
+      </div>
+          <div>
+        <label
+          htmlFor="edit-budget"
+          className="mb-1.5 block text-sm font-semibold"
+        >
+          Budget
+          <span className="ml-1 font-normal text-[#2A1A14]/40 dark:text-[#EFE6D8]/40">
+            (optional, in dollars)
+          </span>
+        </label>
+                <div className="flex items-center gap-2">
+          <select
+            name="currency"
+            defaultValue={currency}
+            className="shrink-0 rounded-xl border border-[#C1272D]/20 bg-white px-2.5 py-2 text-sm font-semibold text-[#2A1A14] outline-none focus:border-[#C1272D] focus:ring-2 focus:ring-[#C1272D]/15 dark:border-white/15 dark:bg-[#1A1113] dark:text-white dark:focus:border-[#E9B44C] dark:focus:ring-[#E9B44C]/15"
+          >
+            <option value="USD">$ USD</option>
+            <option value="EUR">€ EUR</option>
+            <option value="PHP">₱ PHP</option>
+          </select>
+          <input
+            id="edit-budget"
+            name="budget"
+            type="number"
+            min="0"
+            step="1"
+            defaultValue={budget != null ? budget / 100 : ""}
+            placeholder="50"
+            className="w-full rounded-xl border border-[#C1272D]/20 bg-white px-3 py-2 text-sm text-[#2A1A14] outline-none focus:border-[#C1272D] focus:ring-2 focus:ring-[#C1272D]/15 dark:border-white/15 dark:bg-[#1A1113] dark:text-white dark:focus:border-[#E9B44C] dark:focus:ring-[#E9B44C]/15"
+          />
+        </div>
+      </div>
       <div className="flex items-center gap-2">
         <button
           type="submit"

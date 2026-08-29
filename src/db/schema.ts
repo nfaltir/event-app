@@ -4,6 +4,7 @@ import {
   timestamp,
   uuid,
   unique,
+  integer,
 } from "drizzle-orm/pg-core";
 
 export const events = pgTable("events", {
@@ -14,6 +15,10 @@ export const events = pgTable("events", {
   description: text("description"),
 
   status: text("status").notNull().default("active"),
+
+  budget: integer("budget"),
+
+  currency: text("currency").notNull().default("USD"),
 
   adminCode: text("admin_code").notNull().unique(),
 
@@ -74,3 +79,22 @@ export const secretSantaAssignments = pgTable(
     ),
   ]
 );
+
+
+// Wishlist
+
+export const wishes = pgTable("wishes", {
+  id: uuid("id").defaultRandom().primaryKey(),
+
+  eventId: uuid("event_id")
+    .notNull()
+    .references(() => events.id, { onDelete: "cascade" }),
+
+  participantId: uuid("participant_id")
+    .notNull()
+    .references(() => participants.id, { onDelete: "cascade" }),
+
+  text: text("text").notNull(),
+
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});

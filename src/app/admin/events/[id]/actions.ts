@@ -126,9 +126,28 @@ export async function editEvent(eventId: string, formData: FormData) {
 
   const name = formData.get("name")?.toString().trim();
   const description = formData.get("description")?.toString().trim();
+  const budgetRaw = formData.get("budget")?.toString().trim();
+  const currencyRaw = formData.get("currency")?.toString().trim();
+
 
   if (!name) {
     throw new Error("Event name is required.");
+  }
+
+  // Currency is display-only metadata; accept only known codes.
+  const allowedCurrencies = ["USD", "EUR", "PHP"];
+  const currency = allowedCurrencies.includes(currencyRaw ?? "")
+    ? (currencyRaw as string)
+    : "USD";
+
+  // Budget is entered in whole dollars, stored as cents. Empty = no budget.
+  let budget: number | null = null;
+  if (budgetRaw) {
+    const dollars = Number(budgetRaw);
+    if (!Number.isFinite(dollars) || dollars < 0) {
+      throw new Error("Budget must be a positive number.");
+    }
+    budget = Math.round(dollars * 100);
   }
 
   await db
@@ -136,6 +155,8 @@ export async function editEvent(eventId: string, formData: FormData) {
     .set({
       name,
       description: description || null,
+      budget,
+      currency,
     })
     .where(eq(events.id, eventId));
 

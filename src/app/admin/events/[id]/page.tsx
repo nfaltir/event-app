@@ -17,6 +17,7 @@ import DeleteParticipantButton from "./DeleteParticipantButton";
 import EditableParticipantName from "./EditableParticipantName";
 import EditEventForm from "./EditEventForm";
 import DeleteEvent from "./DeleteEvent";
+import { formatMoney } from "@/lib/money";
 
 /* ---------- icons ---------- */
 
@@ -194,17 +195,28 @@ export default async function AdminEventPage({ params }: AdminEventPageProps) {
                   {event.description}
                 </p>
               )}
-                            <EditEventForm
+
+              <EditEventForm
                 eventId={id}
                 name={event.name}
                 description={event.description}
+                budget={event.budget}
+                currency={event.currency}
               />
             </div>
 
-            <span className="inline-flex shrink-0 items-center gap-1.5 self-start rounded-full bg-[#C1272D]/10 px-3 py-1 text-xs font-semibold capitalize text-[#C1272D] dark:bg-[#C1272D]/20 dark:text-[#E9B44C]">
-              <span className="h-1.5 w-1.5 rounded-full bg-[#2F5A43]" />
-              {event.status}
-            </span>
+            <div className="flex shrink-0 items-center gap-2 self-start">
+              {event.budget != null && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-[#2F5A43]/12 px-3 py-1 text-xs font-semibold text-[#2F5A43] dark:bg-[#2F5A43]/25 dark:text-[#7FcaA0]">
+                  Budget {formatMoney(event.budget, event.currency)}
+                </span>
+              )}
+
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#C1272D]/10 px-3 py-1 text-xs font-semibold capitalize text-[#C1272D] dark:bg-[#C1272D]/20 dark:text-[#E9B44C]">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#2F5A43]" />
+                {event.status}
+              </span>
+            </div>
           </div>
 
           {/* Two-column layout */}
@@ -435,19 +447,15 @@ export default async function AdminEventPage({ params }: AdminEventPageProps) {
               </section>
             </div>
           </div>
+
+          {/* Danger zone */}
+          <DeleteEvent
+            eventId={id}
+            eventName={event.name}
+            participantCount={totalParticipants}
+          />
         </div>
-             <div className="mx-auto w-full max-w-6xl">
-            <DeleteEvent
-              eventId={id}
-              eventName={event.name}
-              participantCount={totalParticipants}
-            />
-          </div>
       </main>
     </div>
   );
 }
-
-
-
-     
