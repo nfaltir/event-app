@@ -56,6 +56,8 @@ export const secretSantaAssignments = pgTable(
       .notNull()
       .references(() => events.id, { onDelete: "cascade" }),
 
+    
+
     participantId: uuid("participant_id")
       .notNull()
       .references(() => participants.id, { onDelete: "cascade" }),
@@ -63,6 +65,8 @@ export const secretSantaAssignments = pgTable(
     assignedParticipantId: uuid("assigned_participant_id")
       .notNull()
       .references(() => participants.id, { onDelete: "cascade" }),
+
+    
 
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },

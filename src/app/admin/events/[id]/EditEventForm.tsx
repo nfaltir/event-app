@@ -97,22 +97,8 @@ export default function EditEventForm({
           className="w-full rounded-xl border border-[#C1272D]/20 bg-white px-3 py-2 text-sm text-[#2A1A14] outline-none focus:border-[#C1272D] focus:ring-2 focus:ring-[#C1272D]/15 dark:border-white/15 dark:bg-[#1A1113] dark:text-white dark:focus:border-[#E9B44C] dark:focus:ring-[#E9B44C]/15"
         />
       </div>
-            <div>
-        <label
-          htmlFor="edit-desc"
-          className="mb-1.5 block text-sm font-semibold"
-        >
-          Description
-        </label>
-        <textarea
-          id="edit-desc"
-          name="description"
-          defaultValue={description ?? ""}
-          rows={3}
-          className="w-full rounded-xl border border-[#C1272D]/20 bg-white px-3 py-2 text-sm text-[#2A1A14] outline-none focus:border-[#C1272D] focus:ring-2 focus:ring-[#C1272D]/15 dark:border-white/15 dark:bg-[#1A1113] dark:text-white dark:focus:border-[#E9B44C] dark:focus:ring-[#E9B44C]/15"
-        />
-      </div>
-          <div>
+
+      <div>
         <label
           htmlFor="edit-budget"
           className="mb-1.5 block text-sm font-semibold"
@@ -122,7 +108,7 @@ export default function EditEventForm({
             (optional, in dollars)
           </span>
         </label>
-                <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2">
           <select
             name="currency"
             defaultValue={currency}
@@ -144,6 +130,7 @@ export default function EditEventForm({
           />
         </div>
       </div>
+
       <div className="flex items-center gap-2">
         <button
           type="submit"
